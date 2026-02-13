@@ -36,6 +36,65 @@ interface Assessment {
   submittedAt: string;
 }
 
+// Demo data for when no real assessments exist
+const DEMO_ASSESSMENTS: Assessment[] = [
+  {
+    id: 'demo-1',
+    userName: 'John Smith',
+    userEmail: 'john.smith@techcorp.com',
+    companyName: 'TechCorp Inc.',
+    location: 'San Francisco, CA',
+    overallPercentage: 78,
+    totalScore: 195,
+    maxTotalScore: 250,
+    submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+  },
+  {
+    id: 'demo-2',
+    userName: 'Sarah Johnson',
+    userEmail: 'sarah.j@innovatelab.com',
+    companyName: 'Innovate Labs',
+    location: 'New York, NY',
+    overallPercentage: 65,
+    totalScore: 162,
+    maxTotalScore: 250,
+    submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+  },
+  {
+    id: 'demo-3',
+    userName: 'Michael Chen',
+    userEmail: 'mchen@securedata.io',
+    companyName: 'SecureData Solutions',
+    location: 'Austin, TX',
+    overallPercentage: 45,
+    totalScore: 112,
+    maxTotalScore: 250,
+    submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+  },
+  {
+    id: 'demo-4',
+    userName: 'Emily Rodriguez',
+    userEmail: 'emily.r@cloudtech.com',
+    companyName: 'CloudTech Systems',
+    location: 'Seattle, WA',
+    overallPercentage: 82,
+    totalScore: 205,
+    maxTotalScore: 250,
+    submittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+  },
+  {
+    id: 'demo-5',
+    userName: 'David Park',
+    userEmail: 'dpark@cyberguard.net',
+    companyName: 'CyberGuard Security',
+    location: 'Boston, MA',
+    overallPercentage: 91,
+    totalScore: 227,
+    maxTotalScore: 250,
+    submittedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(), // 12 days ago
+  },
+];
+
 export function DashboardPage() {
   const navigate = useNavigate();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -44,6 +103,7 @@ export function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'score' | 'company'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [isDemoData, setIsDemoData] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -86,10 +146,20 @@ export function DashboardPage() {
         throw new Error(data.error || 'Failed to fetch assessments');
       }
 
-      setAssessments(data.assessments);
+      // If no real assessments, use demo data
+      if (data.assessments.length === 0) {
+        setAssessments(DEMO_ASSESSMENTS);
+        setIsDemoData(true);
+      } else {
+        setAssessments(data.assessments);
+        setIsDemoData(false);
+      }
     } catch (error: any) {
       console.error('Error fetching assessments:', error);
       toast.error(error.message || 'Failed to load assessments');
+      // Use demo data if real data fails to load
+      setAssessments(DEMO_ASSESSMENTS);
+      setIsDemoData(true);
     } finally {
       setLoading(false);
     }
@@ -182,7 +252,14 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-2xl">Assessment Submissions</CardTitle>
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-2xl">Assessment Submissions</CardTitle>
+                {isDemoData && (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-300">
+                    Demo Data
+                  </Badge>
+                )}
+              </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 {/* Search */}
                 <div className="relative flex-1 sm:min-w-[300px]">

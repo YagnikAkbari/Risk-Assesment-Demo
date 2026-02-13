@@ -42,31 +42,97 @@ app.post("/make-server-351c7044/signup", async (c) => {
       return c.json({ error: 'All fields are required' }, 400);
     }
 
-    // Create user with Supabase Auth
-    const { data, error } = await supabase.auth.admin.createUser({
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store temporary user data with OTP (expires in 10 minutes)
+    const tempUserId = crypto.randomUUID();
+    await kv.set(`temp_user:${tempUserId}`, {
       email,
       password,
+      name,
+      companyName,
+      location,
+      otp,
+      createdAt: new Date().toISOString()
+    });
+
+    // In production, send OTP via email
+    // For now, we'll return it in the response for demo purposes
+    console.log(`OTP for ${email}: ${otp}`);
+
+    return c.json({ 
+      success: true,
+      tempUserId,
+      // Remove this in production - only for demo
+      otp 
+    });
+  } catch (error: any) {
+    console.log('Signup error:', error);
+    return c.json({ error: error.message || 'Failed to sign up' }, 500);
+  }
+});
+
+// Verify OTP and complete signup
+app.post("/make-server-351c7044/verify-otp", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { tempUserId, otp } = body;
+
+    if (!tempUserId || !otp) {
+      return c.json({ error: 'Missing required fields' }, 400);
+    }
+
+    // Get temporary user data
+    const tempUser = await kv.get(`temp_user:${tempUserId}`);
+    
+    if (!tempUser) {
+      return c.json({ error: 'Invalid or expired verification code' }, 400);
+    }
+
+    // Verify OTP
+    if (tempUser.otp !== otp) {
+      return c.json({ error: 'Invalid verification code' }, 400);
+    }
+
+    // Check if OTP is expired (10 minutes)
+    const createdAt = new Date(tempUser.createdAt);
+    const now = new Date();
+    const diffMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+    
+    if (diffMinutes > 10) {
+      await kv.del(`temp_user:${tempUserId}`);
+      return c.json({ error: 'Verification code expired. Please sign up again.' }, 400);
+    }
+
+    // Create user with Supabase Auth
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: tempUser.email,
+      password: tempUser.password,
       user_metadata: { 
-        name, 
-        companyName, 
-        location 
+        name: tempUser.name, 
+        companyName: tempUser.companyName, 
+        location: tempUser.location 
       },
       // Automatically confirm the user's email since an email server hasn't been configured.
       email_confirm: true
     });
 
     if (error) {
-      console.log('Signup error:', error);
+      console.log('User creation error:', error);
       return c.json({ error: error.message }, 400);
     }
+
+    // Clean up temporary user data
+    await kv.del(`temp_user:${tempUserId}`);
 
     return c.json({ 
       success: true,
       user: data.user 
     });
   } catch (error: any) {
-    console.log('Signup error:', error);
-    return c.json({ error: error.message || 'Failed to sign up' }, 500);
+    console.log('Verify OTP error:', error);
+    return c.json({ error: error.message || 'Failed to verify OTP' }, 500);
   }
 });
 

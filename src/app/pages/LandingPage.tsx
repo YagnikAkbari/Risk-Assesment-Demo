@@ -7,8 +7,13 @@ import { Label } from '../components/ui/label';
 import { supabase } from '../utils/supabase';
 import { toast } from 'sonner';
 import { motion } from 'motion/react';
-import { Shield, FileSearch, BarChart3, Download, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Shield, FileSearch, BarChart3, Download, ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react';
 import { projectId, publicAnonKey } from '/utils/supabase/info';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '../components/ui/input-otp';
 
 const steps = [
   {
@@ -37,8 +42,13 @@ export function LandingPage() {
   const navigate = useNavigate();
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
+  const [showOtpVerify, setShowOtpVerify] = useState(false);
   const [isSignIn, setIsSignIn] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tempUserId, setTempUserId] = useState('');
+  const [demoOtp, setDemoOtp] = useState('');
+  const [otpValue, setOtpValue] = useState('');
   
   const [formData, setFormData] = useState({
     email: '',
@@ -58,6 +68,7 @@ export function LandingPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -71,11 +82,14 @@ export function LandingPage() {
       navigate('/dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign in');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/signup`,
@@ -101,12 +115,65 @@ export function LandingPage() {
         throw new Error(data.error || 'Failed to sign up');
       }
 
-      toast.success('Account created successfully! Please sign in.');
+      // Store temporary user ID and demo OTP
+      setTempUserId(data.tempUserId);
+      setDemoOtp(data.otp); // For demo purposes only
+      
+      toast.success(`Verification code sent to ${formData.email}! (Demo OTP: ${data.otp})`, {
+        duration: 10000,
+      });
+      
       setShowSignUp(false);
-      setShowSignIn(true);
-      setFormData({ email: '', password: '', name: '', companyName: '', location: '' });
+      setShowOtpVerify(true);
     } catch (error: any) {
       toast.error(error.message || 'Failed to sign up');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (otpValue.length !== 6) {
+      toast.error('Please enter a valid 6-digit code');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/verify-otp`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            tempUserId,
+            otp: otpValue,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to verify OTP');
+      }
+
+      toast.success('Account verified successfully! Please sign in.');
+      setShowOtpVerify(false);
+      setShowSignIn(true);
+      setFormData({ email: '', password: '', name: '', companyName: '', location: '' });
+      setOtpValue('');
+      setTempUserId('');
+      setDemoOtp('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to verify OTP');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -299,6 +366,7 @@ export function LandingPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -309,9 +377,19 @@ export function LandingPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full">Sign In</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
             <p className="text-sm text-center text-gray-600">
               Don't have an account?{' '}
               <button
@@ -321,6 +399,7 @@ export function LandingPage() {
                   setShowSignUp(true);
                 }}
                 className="text-blue-600 hover:underline"
+                disabled={isLoading}
               >
                 Sign up
               </button>
@@ -346,6 +425,7 @@ export function LandingPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -356,6 +436,7 @@ export function LandingPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -366,6 +447,7 @@ export function LandingPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -375,6 +457,7 @@ export function LandingPage() {
                 value={formData.companyName}
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
             <div>
@@ -384,9 +467,19 @@ export function LandingPage() {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 required
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full">Sign Up</Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Sign Up'
+              )}
+            </Button>
             <p className="text-sm text-center text-gray-600">
               Already have an account?{' '}
               <button
@@ -396,10 +489,89 @@ export function LandingPage() {
                   setShowSignIn(true);
                 }}
                 className="text-blue-600 hover:underline"
+                disabled={isLoading}
               >
                 Sign in
               </button>
             </p>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* OTP Verification Dialog */}
+      <Dialog open={showOtpVerify} onOpenChange={setShowOtpVerify}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verify Your Email</DialogTitle>
+            <DialogDescription>
+              We've sent a verification code to your email. Please enter it below.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
+                <Mail className="size-8 text-blue-600" />
+              </div>
+              
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  Enter the 6-digit code sent to
+                </p>
+                <p className="font-medium text-gray-900">{formData.email}</p>
+              </div>
+
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={otpValue}
+                  onChange={(value) => setOtpValue(value)}
+                  disabled={isLoading}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              {demoOtp && (
+                <div className="text-xs text-center p-2 bg-yellow-50 border border-yellow-200 rounded">
+                  <p className="text-yellow-800">
+                    <strong>Demo Mode:</strong> Your verification code is <strong>{demoOtp}</strong>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isLoading || otpValue.length !== 6}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify Code'
+              )}
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowOtpVerify(false);
+                  setShowSignUp(true);
+                  setOtpValue('');
+                }}
+                className="text-sm text-blue-600 hover:underline"
+                disabled={isLoading}
+              >
+                Back to sign up
+              </button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
