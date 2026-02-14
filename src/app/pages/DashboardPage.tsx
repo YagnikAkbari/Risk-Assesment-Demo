@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,19 +15,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../components/ui/table';
+} from "../components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../components/ui/select';
-import { Badge } from '../components/ui/badge';
-import { supabase } from '../utils/supabase';
-import { toast } from 'sonner';
-import { Search, LogOut, FileText, ArrowUpDown, Shield } from 'lucide-react';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+} from "../components/ui/select";
+import { Badge } from "../components/ui/badge";
+import { supabase } from "../utils/supabase";
+import { toast } from "sonner";
+import { Search, LogOut, FileText, ArrowUpDown, Shield } from "lucide-react";
+import { projectId, publicAnonKey } from "/utils/supabase/info";
 
 interface Assessment {
   id: string;
@@ -39,55 +44,55 @@ interface Assessment {
 // Demo data for when no real assessments exist
 const DEMO_ASSESSMENTS: Assessment[] = [
   {
-    id: 'demo-1',
-    userName: 'John Smith',
-    userEmail: 'john.smith@techcorp.com',
-    companyName: 'TechCorp Inc.',
-    location: 'San Francisco, CA',
+    id: "demo-1",
+    userName: "John Smith",
+    userEmail: "john.smith@techcorp.com",
+    companyName: "TechCorp Inc.",
+    location: "San Francisco, CA",
     overallPercentage: 78,
     totalScore: 195,
     maxTotalScore: 250,
     submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
   },
   {
-    id: 'demo-2',
-    userName: 'Sarah Johnson',
-    userEmail: 'sarah.j@innovatelab.com',
-    companyName: 'Innovate Labs',
-    location: 'New York, NY',
+    id: "demo-2",
+    userName: "Sarah Johnson",
+    userEmail: "sarah.j@innovatelab.com",
+    companyName: "Innovate Labs",
+    location: "New York, NY",
     overallPercentage: 65,
     totalScore: 162,
     maxTotalScore: 250,
     submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
   },
   {
-    id: 'demo-3',
-    userName: 'Michael Chen',
-    userEmail: 'mchen@securedata.io',
-    companyName: 'SecureData Solutions',
-    location: 'Austin, TX',
+    id: "demo-3",
+    userName: "Michael Chen",
+    userEmail: "mchen@securedata.io",
+    companyName: "SecureData Solutions",
+    location: "Austin, TX",
     overallPercentage: 45,
     totalScore: 112,
     maxTotalScore: 250,
     submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
   },
   {
-    id: 'demo-4',
-    userName: 'Emily Rodriguez',
-    userEmail: 'emily.r@cloudtech.com',
-    companyName: 'CloudTech Systems',
-    location: 'Seattle, WA',
+    id: "demo-4",
+    userName: "Emily Rodriguez",
+    userEmail: "emily.r@cloudtech.com",
+    companyName: "CloudTech Systems",
+    location: "Seattle, WA",
     overallPercentage: 82,
     totalScore: 205,
     maxTotalScore: 250,
     submittedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
   },
   {
-    id: 'demo-5',
-    userName: 'David Park',
-    userEmail: 'dpark@cyberguard.net',
-    companyName: 'CyberGuard Security',
-    location: 'Boston, MA',
+    id: "demo-5",
+    userName: "David Park",
+    userEmail: "dpark@cyberguard.net",
+    companyName: "CyberGuard Security",
+    location: "Boston, MA",
     overallPercentage: 91,
     totalScore: 227,
     maxTotalScore: 250,
@@ -98,11 +103,13 @@ const DEMO_ASSESSMENTS: Assessment[] = [
 export function DashboardPage() {
   const navigate = useNavigate();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [filteredAssessments, setFilteredAssessments] = useState<Assessment[]>([]);
+  const [filteredAssessments, setFilteredAssessments] = useState<Assessment[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'score' | 'company'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "score" | "company">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isDemoData, setIsDemoData] = useState(false);
 
   useEffect(() => {
@@ -115,18 +122,22 @@ export function DashboardPage() {
   }, [assessments, searchQuery, sortBy, sortOrder]);
 
   const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) {
-      toast.error('Please sign in to access the dashboard');
-      navigate('/');
+      toast.error("Please sign in to access the dashboard");
+      navigate("/");
     }
   };
 
   const fetchAssessments = async () => {
     try {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
         return;
       }
@@ -135,15 +146,15 @@ export function DashboardPage() {
         `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/assessments`,
         {
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
+            Authorization: `Bearer ${session.access_token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch assessments');
+        throw new Error(data.error || "Failed to fetch assessments");
       }
 
       // If no real assessments, use demo data
@@ -155,8 +166,8 @@ export function DashboardPage() {
         setIsDemoData(false);
       }
     } catch (error: any) {
-      console.error('Error fetching assessments:', error);
-      toast.error(error.message || 'Failed to load assessments');
+      console.error("Error fetching assessments:", error);
+      toast.error(error.message || "Failed to load assessments");
       // Use demo data if real data fails to load
       setAssessments(DEMO_ASSESSMENTS);
       setIsDemoData(true);
@@ -176,7 +187,7 @@ export function DashboardPage() {
           assessment.userName.toLowerCase().includes(query) ||
           assessment.userEmail.toLowerCase().includes(query) ||
           assessment.companyName.toLowerCase().includes(query) ||
-          assessment.location.toLowerCase().includes(query)
+          assessment.location.toLowerCase().includes(query),
       );
     }
 
@@ -185,18 +196,20 @@ export function DashboardPage() {
       let comparison = 0;
 
       switch (sortBy) {
-        case 'date':
-          comparison = new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+        case "date":
+          comparison =
+            new Date(a.submittedAt).getTime() -
+            new Date(b.submittedAt).getTime();
           break;
-        case 'score':
+        case "score":
           comparison = a.overallPercentage - b.overallPercentage;
           break;
-        case 'company':
+        case "company":
           comparison = a.companyName.localeCompare(b.companyName);
           break;
       }
 
-      return sortOrder === 'asc' ? comparison : -comparison;
+      return sortOrder === "asc" ? comparison : -comparison;
     });
 
     setFilteredAssessments(filtered);
@@ -204,24 +217,26 @@ export function DashboardPage() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    toast.success('Signed out successfully');
-    navigate('/');
+    toast.success("Signed out successfully");
+    navigate("/");
   };
 
-  const getScoreBadgeVariant = (percentage: number): "default" | "secondary" | "destructive" => {
-    if (percentage >= 75) return 'default';
-    if (percentage >= 50) return 'secondary';
-    return 'destructive';
+  const getScoreBadgeVariant = (
+    percentage: number,
+  ): "default" | "secondary" | "destructive" => {
+    if (percentage >= 75) return "default";
+    if (percentage >= 50) return "secondary";
+    return "destructive";
   };
 
   const getScoreLabel = (percentage: number): string => {
-    if (percentage >= 75) return 'Good';
-    if (percentage >= 50) return 'Moderate';
-    return 'Needs Improvement';
+    if (percentage >= 75) return "Good";
+    if (percentage >= 50) return "Moderate";
+    return "Needs Improvement";
   };
 
   const toggleSortOrder = () => {
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
   return (
@@ -232,10 +247,12 @@ export function DashboardPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <Shield className="size-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Assessment Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Assessment Dashboard
+              </h1>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate('/')}>
+              <Button variant="outline" onClick={() => navigate("/")}>
                 Home
               </Button>
               <Button variant="outline" onClick={handleSignOut}>
@@ -253,9 +270,14 @@ export function DashboardPage() {
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div className="flex items-center gap-3">
-                <CardTitle className="text-2xl">Assessment Submissions</CardTitle>
+                <CardTitle className="text-2xl">
+                  Assessment Submissions
+                </CardTitle>
                 {isDemoData && (
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-300">
+                  <Badge
+                    variant="secondary"
+                    className="bg-amber-100 text-amber-800 border-amber-300"
+                  >
                     Demo Data
                   </Badge>
                 )}
@@ -274,7 +296,10 @@ export function DashboardPage() {
 
                 {/* Sort Controls */}
                 <div className="flex gap-2">
-                  <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(value: any) => setSortBy(value)}
+                  >
                     <SelectTrigger className="w-[150px]">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
@@ -289,7 +314,7 @@ export function DashboardPage() {
                     variant="outline"
                     size="icon"
                     onClick={toggleSortOrder}
-                    title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                    title={sortOrder === "asc" ? "Ascending" : "Descending"}
                   >
                     <ArrowUpDown className="size-4" />
                   </Button>
@@ -307,7 +332,9 @@ export function DashboardPage() {
               <div className="text-center py-12">
                 <FileText className="size-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">
-                  {searchQuery ? 'No assessments found matching your search.' : 'No assessments submitted yet.'}
+                  {searchQuery
+                    ? "No assessments found matching your search."
+                    : "No assessments submitted yet."}
                 </p>
               </div>
             ) : (
@@ -328,7 +355,9 @@ export function DashboardPage() {
                   <TableBody>
                     {filteredAssessments.map((assessment) => (
                       <TableRow key={assessment.id}>
-                        <TableCell className="font-medium">{assessment.userName}</TableCell>
+                        <TableCell className="font-medium">
+                          {assessment.userName}
+                        </TableCell>
                         <TableCell>{assessment.userEmail}</TableCell>
                         <TableCell>{assessment.companyName}</TableCell>
                         <TableCell>{assessment.location}</TableCell>
@@ -338,21 +367,29 @@ export function DashboardPage() {
                               {assessment.overallPercentage}%
                             </div>
                             <div className="text-xs text-gray-500">
-                              ({assessment.totalScore}/{assessment.maxTotalScore})
+                              ({assessment.totalScore}/
+                              {assessment.maxTotalScore})
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={getScoreBadgeVariant(assessment.overallPercentage)}>
+                          <Badge
+                            variant={getScoreBadgeVariant(
+                              assessment.overallPercentage,
+                            )}
+                          >
                             {getScoreLabel(assessment.overallPercentage)}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {new Date(assessment.submittedAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                          {new Date(assessment.submittedAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -380,12 +417,16 @@ export function DashboardPage() {
                       {filteredAssessments.length}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {searchQuery ? 'Filtered Results' : 'Total Assessments'}
+                      {searchQuery ? "Filtered Results" : "Total Assessments"}
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {filteredAssessments.filter((a) => a.overallPercentage >= 75).length}
+                      {
+                        filteredAssessments.filter(
+                          (a) => a.overallPercentage >= 75,
+                        ).length
+                      }
                     </div>
                     <div className="text-sm text-gray-600">Good Scores</div>
                   </div>
@@ -393,7 +434,9 @@ export function DashboardPage() {
                     <div className="text-2xl font-bold text-yellow-600">
                       {
                         filteredAssessments.filter(
-                          (a) => a.overallPercentage >= 50 && a.overallPercentage < 75
+                          (a) =>
+                            a.overallPercentage >= 50 &&
+                            a.overallPercentage < 75,
                         ).length
                       }
                     </div>
@@ -401,9 +444,15 @@ export function DashboardPage() {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-red-600">
-                      {filteredAssessments.filter((a) => a.overallPercentage < 50).length}
+                      {
+                        filteredAssessments.filter(
+                          (a) => a.overallPercentage < 50,
+                        ).length
+                      }
                     </div>
-                    <div className="text-sm text-gray-600">Needs Improvement</div>
+                    <div className="text-sm text-gray-600">
+                      Needs Improvement
+                    </div>
                   </div>
                 </div>
               </div>

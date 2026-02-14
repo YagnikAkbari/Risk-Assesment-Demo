@@ -1,30 +1,47 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { supabase } from '../utils/supabase';
-import { toast } from 'sonner';
-import { motion } from 'motion/react';
-import { Shield, FileSearch, BarChart3, Download, ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import { Button } from "../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "../components/ui/dialog";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { supabase } from "../utils/supabase";
+import { toast } from "sonner";
+import { motion } from "motion/react";
+import {
+  Shield,
+  FileSearch,
+  BarChart3,
+  Download,
+  ArrowRight,
+  CheckCircle2,
+  Loader2,
+  Mail,
+} from "lucide-react";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from '../components/ui/input-otp';
+} from "../components/ui/input-otp";
+import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 const steps = [
   {
     icon: FileSearch,
     title: "Answer Questions",
-    description: "Complete our comprehensive ISO 27001 assessment questionnaire",
+    description:
+      "Complete our comprehensive ISO 27001 assessment questionnaire",
   },
   {
     icon: BarChart3,
     title: "Analyze Results",
-    description: "Our system evaluates your responses against ISO 27001 standards",
+    description:
+      "Our system evaluates your responses against ISO 27001 standards",
   },
   {
     icon: Shield,
@@ -46,16 +63,16 @@ export function LandingPage() {
   const [isSignIn, setIsSignIn] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [tempUserId, setTempUserId] = useState('');
-  const [demoOtp, setDemoOtp] = useState('');
-  const [otpValue, setOtpValue] = useState('');
-  
+  const [tempUserId, setTempUserId] = useState("");
+  const [demoOtp, setDemoOtp] = useState("");
+  const [otpValue, setOtpValue] = useState("");
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: '',
-    companyName: '',
-    location: '',
+    email: "",
+    password: "",
+    name: "",
+    companyName: "",
+    location: "",
   });
 
   // Animate through steps
@@ -77,11 +94,11 @@ export function LandingPage() {
 
       if (error) throw error;
 
-      toast.success('Signed in successfully!');
+      toast.success("Signed in successfully!");
       setShowSignIn(false);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      toast.error(error.message || "Failed to sign in");
     } finally {
       setIsLoading(false);
     }
@@ -94,10 +111,10 @@ export function LandingPage() {
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/signup`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${publicAnonKey}`,
           },
           body: JSON.stringify({
             email: formData.email,
@@ -106,27 +123,30 @@ export function LandingPage() {
             companyName: formData.companyName,
             location: formData.location,
           }),
-        }
+        },
       );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to sign up');
+        throw new Error(data.error || "Failed to sign up");
       }
 
       // Store temporary user ID and demo OTP
       setTempUserId(data.tempUserId);
       setDemoOtp(data.otp); // For demo purposes only
-      
-      toast.success(`Verification code sent to ${formData.email}! (Demo OTP: ${data.otp})`, {
-        duration: 10000,
-      });
-      
+
+      toast.success(
+        `Verification code sent to ${formData.email}! (Demo OTP: ${data.otp})`,
+        {
+          duration: 10000,
+        },
+      );
+
       setShowSignUp(false);
       setShowOtpVerify(true);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign up');
+      toast.error(error.message || "Failed to sign up");
     } finally {
       setIsLoading(false);
     }
@@ -134,9 +154,9 @@ export function LandingPage() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (otpValue.length !== 6) {
-      toast.error('Please enter a valid 6-digit code');
+      toast.error("Please enter a valid 6-digit code");
       return;
     }
 
@@ -145,40 +165,46 @@ export function LandingPage() {
       const response = await fetch(
         `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/verify-otp`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${publicAnonKey}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${publicAnonKey}`,
           },
           body: JSON.stringify({
             tempUserId,
             otp: otpValue,
           }),
-        }
+        },
       );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to verify OTP');
+        throw new Error(data.error || "Failed to verify OTP");
       }
 
-      toast.success('Account verified successfully! Please sign in.');
+      toast.success("Account verified successfully! Please sign in.");
       setShowOtpVerify(false);
       setShowSignIn(true);
-      setFormData({ email: '', password: '', name: '', companyName: '', location: '' });
-      setOtpValue('');
-      setTempUserId('');
-      setDemoOtp('');
+      setFormData({
+        email: "",
+        password: "",
+        name: "",
+        companyName: "",
+        location: "",
+      });
+      setOtpValue("");
+      setTempUserId("");
+      setDemoOtp("");
     } catch (error: any) {
-      toast.error(error.message || 'Failed to verify OTP');
+      toast.error(error.message || "Failed to verify OTP");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleStartAssessment = () => {
-    navigate('/assessment');
+    navigate("/assessment");
   };
 
   return (
@@ -188,15 +214,15 @@ export function LandingPage() {
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Shield className="size-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">ISO 27001 Assessment</h1>
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">
+              RiskGuard
+            </h1>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => setShowSignIn(true)}>
               Sign In
             </Button>
-            <Button onClick={() => setShowSignUp(true)}>
-              Sign Up
-            </Button>
+            <Button onClick={() => setShowSignUp(true)}>Sign Up</Button>
           </div>
         </div>
       </header>
@@ -206,7 +232,7 @@ export function LandingPage() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Side - Animated Steps */}
           <div>
-            <motion.h2 
+            <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
@@ -214,14 +240,15 @@ export function LandingPage() {
               Identify Security Gaps in
               <span className="text-blue-600"> 4 Simple Steps</span>
             </motion.h2>
-            
-            <motion.p 
+
+            <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="text-lg text-gray-600 mb-12"
             >
-              Complete our comprehensive ISO 27001 risk assessment and discover vulnerabilities in your security protocols.
+              Complete our comprehensive ISO 27001 risk assessment and discover
+              vulnerabilities in your security protocols.
             </motion.p>
 
             <div className="space-y-6">
@@ -229,7 +256,7 @@ export function LandingPage() {
                 const Icon = step.icon;
                 const isActive = index === activeStep;
                 const isPast = index < activeStep;
-                
+
                 return (
                   <motion.div
                     key={index}
@@ -237,17 +264,27 @@ export function LandingPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className={`relative flex gap-4 p-4 rounded-lg transition-all duration-500 ${
-                      isActive ? 'bg-blue-50 border-2 border-blue-600 shadow-lg' : 'bg-white border-2 border-transparent'
+                      isActive
+                        ? "bg-blue-50 border-2 border-blue-600 shadow-lg"
+                        : "bg-white border-2 border-transparent"
                     }`}
                   >
                     {/* Step Number/Icon */}
                     <motion.div
                       animate={{
                         scale: isActive ? 1.1 : 1,
-                        backgroundColor: isActive ? '#2563eb' : isPast ? '#10b981' : '#e5e7eb',
+                        backgroundColor: isActive
+                          ? "#2563eb"
+                          : isPast
+                            ? "#10b981"
+                            : "#e5e7eb",
                       }}
                       className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                        isActive ? 'text-white' : isPast ? 'text-white' : 'text-gray-400'
+                        isActive
+                          ? "text-white"
+                          : isPast
+                            ? "text-white"
+                            : "text-gray-400"
                       }`}
                     >
                       {isPast ? (
@@ -259,10 +296,14 @@ export function LandingPage() {
 
                     {/* Step Content */}
                     <div className="flex-1">
-                      <h3 className={`font-semibold text-lg mb-1 ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
+                      <h3
+                        className={`font-semibold text-lg mb-1 ${isActive ? "text-blue-900" : "text-gray-900"}`}
+                      >
                         {step.title}
                       </h3>
-                      <p className={`text-sm ${isActive ? 'text-blue-700' : 'text-gray-600'}`}>
+                      <p
+                        className={`text-sm ${isActive ? "text-blue-700" : "text-gray-600"}`}
+                      >
                         {step.description}
                       </p>
                     </div>
@@ -287,8 +328,10 @@ export function LandingPage() {
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-blue-600"
-                  initial={{ width: '0%' }}
-                  animate={{ width: `${((activeStep + 1) / steps.length) * 100}%` }}
+                  initial={{ width: "0%" }}
+                  animate={{
+                    width: `${((activeStep + 1) / steps.length) * 100}%`,
+                  }}
                   transition={{ duration: 0.5 }}
                 />
               </div>
@@ -309,17 +352,19 @@ export function LandingPage() {
               <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
                 <Shield className="size-10 text-blue-600" />
               </div>
-              
+
               <h3 className="text-3xl font-bold text-gray-900 mb-4">
                 Ready to Get Started?
               </h3>
-              
+
               <p className="text-gray-600 mb-8 text-lg">
-                Take the first step towards ISO 27001 compliance. Our comprehensive assessment will help you identify security gaps and receive actionable recommendations.
+                Take the first step towards ISO 27001 compliance. Our
+                comprehensive assessment will help you identify security gaps
+                and receive actionable recommendations.
               </p>
 
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 className="w-full text-lg h-14 group"
                 onClick={handleStartAssessment}
               >
@@ -338,7 +383,9 @@ export function LandingPage() {
                     <div className="text-sm text-gray-600">Categories</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-blue-600">15min</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      15min
+                    </div>
                     <div className="text-sm text-gray-600">Duration</div>
                   </div>
                 </div>
@@ -364,7 +411,9 @@ export function LandingPage() {
                 id="signin-email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -375,7 +424,9 @@ export function LandingPage() {
                 id="signin-password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -387,11 +438,11 @@ export function LandingPage() {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                "Sign In"
               )}
             </Button>
             <p className="text-sm text-center text-gray-600">
-              Don't have an account?{' '}
+              Don't have an account?{" "}
               <button
                 type="button"
                 onClick={() => {
@@ -423,7 +474,9 @@ export function LandingPage() {
               <Input
                 id="signup-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -434,7 +487,9 @@ export function LandingPage() {
                 id="signup-email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -445,7 +500,9 @@ export function LandingPage() {
                 id="signup-password"
                 type="password"
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -455,7 +512,9 @@ export function LandingPage() {
               <Input
                 id="signup-company"
                 value={formData.companyName}
-                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, companyName: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -465,7 +524,9 @@ export function LandingPage() {
               <Input
                 id="signup-location"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
                 required
                 disabled={isLoading}
               />
@@ -477,11 +538,11 @@ export function LandingPage() {
                   Creating account...
                 </>
               ) : (
-                'Sign Up'
+                "Sign Up"
               )}
             </Button>
             <p className="text-sm text-center text-gray-600">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <button
                 type="button"
                 onClick={() => {
@@ -504,7 +565,8 @@ export function LandingPage() {
           <DialogHeader>
             <DialogTitle>Verify Your Email</DialogTitle>
             <DialogDescription>
-              We've sent a verification code to your email. Please enter it below.
+              We've sent a verification code to your email. Please enter it
+              below.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleVerifyOtp} className="space-y-6">
@@ -512,7 +574,7 @@ export function LandingPage() {
               <div className="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full">
                 <Mail className="size-8 text-blue-600" />
               </div>
-              
+
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-2">
                   Enter the 6-digit code sent to
@@ -541,20 +603,25 @@ export function LandingPage() {
               {demoOtp && (
                 <div className="text-xs text-center p-2 bg-yellow-50 border border-yellow-200 rounded">
                   <p className="text-yellow-800">
-                    <strong>Demo Mode:</strong> Your verification code is <strong>{demoOtp}</strong>
+                    <strong>Demo Mode:</strong> Your verification code is{" "}
+                    <strong>{demoOtp}</strong>
                   </p>
                 </div>
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading || otpValue.length !== 6}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || otpValue.length !== 6}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 size-4 animate-spin" />
                   Verifying...
                 </>
               ) : (
-                'Verify Code'
+                "Verify Code"
               )}
             </Button>
 
@@ -564,7 +631,7 @@ export function LandingPage() {
                 onClick={() => {
                   setShowOtpVerify(false);
                   setShowSignUp(true);
-                  setOtpValue('');
+                  setOtpValue("");
                 }}
                 className="text-sm text-blue-600 hover:underline"
                 disabled={isLoading}
