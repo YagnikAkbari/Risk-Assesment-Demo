@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -15,19 +15,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../components/ui/table";
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select";
-import { Badge } from "../components/ui/badge";
-import { supabase } from "../utils/supabase";
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Search, LogOut, FileText, ArrowUpDown, Shield } from "lucide-react";
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+import { projectId, publicAnonKey } from "@/lib/supabaseInfo";
 
 interface Assessment {
   id: string;
@@ -101,7 +101,7 @@ const DEMO_ASSESSMENTS: Assessment[] = [
 ];
 
 export function DashboardPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [filteredAssessments, setFilteredAssessments] = useState<Assessment[]>(
     [],
@@ -127,7 +127,7 @@ export function DashboardPage() {
     } = await supabase.auth.getSession();
     if (!session) {
       toast.error("Please sign in to access the dashboard");
-      navigate("/");
+      router.push("/");
     }
   };
 
@@ -218,7 +218,7 @@ export function DashboardPage() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
-    navigate("/");
+    router.push("/");
   };
 
   const getScoreBadgeVariant = (
@@ -252,7 +252,8 @@ export function DashboardPage() {
               </h1>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate("/")}>
+              <Button variant="outline" onClick={() => router.push("/")}>
+
                 Home
               </Button>
               <Button variant="outline" onClick={handleSignOut}>
@@ -395,7 +396,7 @@ export function DashboardPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => navigate(`/report/${assessment.id}`)}
+                            onClick={() => router.push(`/report/${assessment.id}`)}
                           >
                             <FileText className="size-4 mr-2" />
                             View Report

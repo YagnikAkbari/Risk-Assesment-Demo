@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Progress } from '../components/ui/progress';
-import { Badge } from '../components/ui/badge';
+import { useParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Download, ArrowLeft, Shield, AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
-import { assessmentClusters } from '../data/questions';
+import { projectId, publicAnonKey } from '@/lib/supabaseInfo';
+import { assessmentClusters } from '@/data/questions';
 
 interface ClusterScore {
   clusterId: string;
@@ -32,8 +32,9 @@ interface AssessmentData {
 }
 
 export function ReportPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  const router = useRouter();
   const [assessment, setAssessment] = useState<AssessmentData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -63,7 +64,7 @@ export function ReportPage() {
     } catch (error: any) {
       console.error('Error fetching assessment:', error);
       toast.error(error.message || 'Failed to load assessment');
-      navigate('/');
+      router.push('/');
     } finally {
       setLoading(false);
     }
@@ -237,7 +238,7 @@ export function ReportPage() {
               <h1 className="text-2xl font-bold text-gray-900">Assessment Report</h1>
             </div>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate('/')}>
+              <Button variant="outline" onClick={() => router.push('/')}>
                 <ArrowLeft className="size-4 mr-2" />
                 Back to Home
               </Button>

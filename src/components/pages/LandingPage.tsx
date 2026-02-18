@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-import { Button } from "../components/ui/button";
+import { useRouter } from "next/navigation";
+import { useAppDispatch } from "@/redux/hooks";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "../components/ui/dialog";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { supabase } from "../utils/supabase";
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -27,8 +27,12 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "../components/ui/input-otp";
-import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+} from "@/components/ui/input-otp";
+import {
+  userSignup,
+  userVerifyOtp,
+  userSignin,
+} from "@/redux/actions/authAction/authAction";
 
 const steps = [
   {
@@ -56,15 +60,13 @@ const steps = [
 ];
 
 export function LandingPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
   const [showSignIn, setShowSignIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [showOtpVerify, setShowOtpVerify] = useState(false);
-  const [isSignIn, setIsSignIn] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [tempUserId, setTempUserId] = useState("");
-  const [demoOtp, setDemoOtp] = useState("");
   const [otpValue, setOtpValue] = useState("");
 
   const [formData, setFormData] = useState({
@@ -86,70 +88,49 @@ export function LandingPage() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+    dispatch(
+      userSignin({
         email: formData.email,
         password: formData.password,
-      });
-
-      if (error) throw error;
-
-      toast.success("Signed in successfully!");
-      setShowSignIn(false);
-      navigate("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign in");
-    } finally {
-      setIsLoading(false);
-    }
+        onSuccess: () => {
+          toast.success("Signed in successfully!");
+          setShowSignIn(false);
+          setIsLoading(false);
+          router.push("/dashboard");
+        },
+        onError: (error: string) => {
+          toast.error(error || "Failed to sign in");
+          setIsLoading(false);
+        },
+      }),
+    );
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/signup`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            name: formData.name,
-            companyName: formData.companyName,
-            location: formData.location,
-          }),
+    dispatch(
+      userSignup({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        location: formData.location,
+        company_size: formData.companyName,
+        onSuccess: () => {
+          toast.success(
+            `Verification code sent to ${formData.email}! Please check your email.`,
+            { duration: 10000 },
+          );
+          setShowSignUp(false);
+          setShowOtpVerify(true);
+          setIsLoading(false);
         },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to sign up");
-      }
-
-      // Store temporary user ID and demo OTP
-      setTempUserId(data.tempUserId);
-      setDemoOtp(data.otp); // For demo purposes only
-
-      toast.success(
-        `Verification code sent to ${formData.email}! (Demo OTP: ${data.otp})`,
-        {
-          duration: 10000,
+        onError: (error: string) => {
+          toast.error(error || "Failed to sign up");
+          setIsLoading(false);
         },
-      );
-
-      setShowSignUp(false);
-      setShowOtpVerify(true);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to sign up");
-    } finally {
-      setIsLoading(false);
-    }
+      }),
+    );
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -161,50 +142,34 @@ export function LandingPage() {
     }
 
     setIsLoading(true);
-    try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/make-server-351c7044/verify-otp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${publicAnonKey}`,
-          },
-          body: JSON.stringify({
-            tempUserId,
-            otp: otpValue,
-          }),
+    dispatch(
+      userVerifyOtp({
+        email: formData.email,
+        otp: otpValue,
+        onSuccess: () => {
+          toast.success("Account verified successfully! Please sign in.");
+          setShowOtpVerify(false);
+          setShowSignIn(true);
+          setFormData({
+            email: "",
+            password: "",
+            name: "",
+            companyName: "",
+            location: "",
+          });
+          setOtpValue("");
+          setIsLoading(false);
         },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to verify OTP");
-      }
-
-      toast.success("Account verified successfully! Please sign in.");
-      setShowOtpVerify(false);
-      setShowSignIn(true);
-      setFormData({
-        email: "",
-        password: "",
-        name: "",
-        companyName: "",
-        location: "",
-      });
-      setOtpValue("");
-      setTempUserId("");
-      setDemoOtp("");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to verify OTP");
-    } finally {
-      setIsLoading(false);
-    }
+        onError: (error: string) => {
+          toast.error(error || "Failed to verify OTP");
+          setIsLoading(false);
+        },
+      }),
+    );
   };
 
   const handleStartAssessment = () => {
-    navigate("/assessment");
+    router.push("/assessment");
   };
 
   return (
@@ -599,15 +564,6 @@ export function LandingPage() {
                   </InputOTPGroup>
                 </InputOTP>
               </div>
-
-              {demoOtp && (
-                <div className="text-xs text-center p-2 bg-yellow-50 border border-yellow-200 rounded">
-                  <p className="text-yellow-800">
-                    <strong>Demo Mode:</strong> Your verification code is{" "}
-                    <strong>{demoOtp}</strong>
-                  </p>
-                </div>
-              )}
             </div>
 
             <Button

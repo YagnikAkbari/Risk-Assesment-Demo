@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
-import { Button } from "../components/ui/button";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Shield,
@@ -130,12 +130,12 @@ const CircularProgress = ({
 };
 
 export function RiskManagementPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [score, setScore] = useState(MOCK_DATA.overallPercentage);
 
   const handleStartAssessment = () => {
-    navigate("/assessment");
+    router.push("/assessment");
   };
 
   const getStatusColor = (percentage: number) => {

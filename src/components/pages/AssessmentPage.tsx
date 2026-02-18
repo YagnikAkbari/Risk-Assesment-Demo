@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { Button } from '../components/ui/button';
-import { Progress } from '../components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
-import { Label } from '../components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { assessmentClusters } from '../data/questions';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { assessmentClusters } from '@/data/questions';
 import { ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { projectId, publicAnonKey } from '/utils/supabase/info';
+import { projectId, publicAnonKey } from '@/lib/supabaseInfo';
 
 interface Answer {
   questionId: string;
@@ -20,7 +20,7 @@ interface Answer {
 }
 
 export function AssessmentPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [currentClusterIndex, setCurrentClusterIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [showUserInfoDialog, setShowUserInfoDialog] = useState(false);
@@ -121,7 +121,7 @@ export function AssessmentPage() {
       }
 
       toast.success('Assessment submitted successfully!');
-      navigate(`/report/${data.assessmentId}`);
+      router.push(`/report/${data.assessmentId}`);
     } catch (error: any) {
       console.error('Error submitting assessment:', error);
       toast.error(error.message || 'Failed to submit assessment');
@@ -135,7 +135,7 @@ export function AssessmentPage() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold text-gray-900">ISO 27001 Assessment</h1>
-            <Button variant="outline" onClick={() => navigate('/')}>
+            <Button variant="outline" onClick={() => router.push('/')}>
               Exit
             </Button>
           </div>
