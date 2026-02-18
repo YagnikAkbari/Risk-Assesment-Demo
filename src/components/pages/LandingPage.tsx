@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
@@ -72,8 +79,8 @@ export function LandingPage() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    name: "",
     companyName: "",
+    companySize: "",
     location: "",
   });
 
@@ -113,9 +120,9 @@ export function LandingPage() {
       userSignup({
         email: formData.email,
         password: formData.password,
-        name: formData.name,
+        name: formData.companyName,
         location: formData.location,
-        company_size: formData.companyName,
+        company_size: formData.companySize,
         onSuccess: () => {
           toast.success(
             `Verification code sent to ${formData.email}! Please check your email.`,
@@ -153,8 +160,8 @@ export function LandingPage() {
           setFormData({
             email: "",
             password: "",
-            name: "",
             companyName: "",
+            companySize: "",
             location: "",
           });
           setOtpValue("");
@@ -371,7 +378,7 @@ export function LandingPage() {
           </DialogHeader>
           <form onSubmit={handleSignIn} className="space-y-4">
             <div>
-              <Label htmlFor="signin-email">Email</Label>
+              <Label htmlFor="signin-email" className="mb-1.5 block">Email</Label>
               <Input
                 id="signin-email"
                 type="email"
@@ -384,7 +391,7 @@ export function LandingPage() {
               />
             </div>
             <div>
-              <Label htmlFor="signin-password">Password</Label>
+              <Label htmlFor="signin-password" className="mb-1.5 block">Password</Label>
               <Input
                 id="signin-password"
                 type="password"
@@ -435,19 +442,19 @@ export function LandingPage() {
           </DialogHeader>
           <form onSubmit={handleSignUp} className="space-y-4">
             <div>
-              <Label htmlFor="signup-name">Full Name</Label>
+              <Label htmlFor="signup-company" className="mb-1.5 block">Company Name</Label>
               <Input
-                id="signup-name"
-                value={formData.name}
+                id="signup-company"
+                value={formData.companyName}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, companyName: e.target.value })
                 }
                 required
                 disabled={isLoading}
               />
             </div>
             <div>
-              <Label htmlFor="signup-email">Email</Label>
+              <Label htmlFor="signup-email" className="mb-1.5 block">Email</Label>
               <Input
                 id="signup-email"
                 type="email"
@@ -460,7 +467,7 @@ export function LandingPage() {
               />
             </div>
             <div>
-              <Label htmlFor="signup-password">Password</Label>
+              <Label htmlFor="signup-password" className="mb-1.5 block">Password</Label>
               <Input
                 id="signup-password"
                 type="password"
@@ -473,19 +480,28 @@ export function LandingPage() {
               />
             </div>
             <div>
-              <Label htmlFor="signup-company">Company Name</Label>
-              <Input
-                id="signup-company"
-                value={formData.companyName}
-                onChange={(e) =>
-                  setFormData({ ...formData, companyName: e.target.value })
+              <Label htmlFor="signup-company-size" className="mb-1.5 block">Company Size</Label>
+              <Select
+                value={formData.companySize}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, companySize: value })
                 }
-                required
                 disabled={isLoading}
-              />
+              >
+                <SelectTrigger id="signup-company-size">
+                  <SelectValue placeholder="Select company size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Solo">Solo</SelectItem>
+                  <SelectItem value="2">2</SelectItem>
+                  <SelectItem value="2-5">2-5</SelectItem>
+                  <SelectItem value="10-100">10-100</SelectItem>
+                  <SelectItem value="100-1000">100-1000</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <Label htmlFor="signup-location">Location</Label>
+              <Label htmlFor="signup-location" className="mb-1.5 block">Location</Label>
               <Input
                 id="signup-location"
                 value={formData.location}

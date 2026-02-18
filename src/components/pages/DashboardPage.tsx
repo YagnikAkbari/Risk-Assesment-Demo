@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -253,7 +248,6 @@ export function DashboardPage() {
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => router.push("/")}>
-
                 Home
               </Button>
               <Button variant="outline" onClick={handleSignOut}>
@@ -396,7 +390,9 @@ export function DashboardPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => router.push(`/report/${assessment.id}`)}
+                            onClick={() =>
+                              router.push(`/report/${assessment.id}`)
+                            }
                           >
                             <FileText className="size-4 mr-2" />
                             View Report
