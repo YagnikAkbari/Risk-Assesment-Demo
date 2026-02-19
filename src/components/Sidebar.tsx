@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/utils";
+import Link from "next/link";
 
 const navItems = [
   {
@@ -41,7 +42,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem("access_token");
     toast.success("Signed out successfully");
     router.push("/");
   };
@@ -50,7 +51,7 @@ export function Sidebar() {
     <aside
       className={cn(
         "sticky top-0 h-screen flex flex-col border-r border-gray-200 bg-white transition-all duration-300",
-        collapsed ? "w-[68px]" : "w-64"
+        collapsed ? "w-[68px]" : "w-64",
       )}
     >
       {/* Logo */}
@@ -69,25 +70,25 @@ export function Sidebar() {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + "/");
           return (
-            <button
+            <Link
               key={item.href}
-              onClick={() => router.push(item.href)}
+              href={item.href}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
                   ? "bg-blue-50 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
               )}
               title={collapsed ? item.label : undefined}
             >
               <item.icon
                 className={cn(
                   "size-5 shrink-0",
-                  isActive ? "text-blue-600" : "text-gray-400"
+                  isActive ? "text-blue-600" : "text-gray-400",
                 )}
               />
               {!collapsed && <span>{item.label}</span>}
-            </button>
+            </Link>
           );
         })}
       </nav>

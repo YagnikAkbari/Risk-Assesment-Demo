@@ -108,8 +108,8 @@ export function DashboardPage() {
   const [isDemoData, setIsDemoData] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-    fetchAssessments();
+    // checkAuth();
+    // fetchAssessments();
   }, []);
 
   useEffect(() => {
