@@ -164,16 +164,16 @@ export function AssessmentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-slate-50/50">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
-        <div className="container mx-auto px-6 py-6 max-w-6xl">
-          <div className="flex justify-between items-start mb-6">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60">
+        <div className="container mx-auto px-6 py-8 max-w-6xl">
+          <div className="flex justify-between items-center mb-8">
+            <div className="space-y-1.5">
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">
                 {metadata?.name || "Assessment"}
               </h1>
-              <p className="text-gray-500 text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-500 font-medium text-base max-w-2xl">
                 {metadata?.description ||
                   "Information Security Management System standard"}
               </p>
@@ -181,7 +181,7 @@ export function AssessmentPage() {
             <Button
               variant="outline"
               onClick={() => router.push("/")}
-              className="hover:bg-gray-50"
+              className="rounded-xl border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:text-slate-900 transition-all px-6"
             >
               Exit
             </Button>
@@ -189,8 +189,8 @@ export function AssessmentPage() {
 
           {/* Step Navigation Bar */}
           {metadata && metadata.totalSteps > 0 && (
-            <div className="group">
-              <div className="flex gap-1.5 px-1">
+            <div className="group px-1">
+              <div className="flex gap-2.5">
                 {Array.from(
                   { length: metadata.totalSteps },
                   (_, i) => i + 1,
@@ -198,19 +198,19 @@ export function AssessmentPage() {
                   <button
                     key={step}
                     onClick={() => setCurrentStep(step)}
-                    className={`flex-1 h-2.5 rounded-full transition-all duration-300 relative ${
+                    className={`flex-1 h-3 rounded-full transition-all duration-500 relative ${
                       currentStep === step
-                        ? "bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                        ? "bg-slate-900"
                         : currentStep > step
-                          ? "bg-blue-400"
-                          : "bg-gray-200 hover:bg-gray-300"
+                          ? "bg-slate-400"
+                          : "bg-slate-200 hover:bg-slate-300"
                     }`}
                     title={`Step ${step}`}
                   >
                     {currentStep === step && (
                       <motion.div
                         layoutId="activeStepIndicator"
-                        className="absolute inset-0 bg-white/30 rounded-full"
+                        className="absolute inset-0 bg-white/20 rounded-full"
                       />
                     )}
                   </button>
@@ -222,95 +222,103 @@ export function AssessmentPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-10 max-w-6xl">
+      <main className="container mx-auto px-6 py-12 max-w-6xl">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-            <Loader2 className="size-10 animate-spin text-blue-600" />
-            <p className="text-gray-400 font-medium">Fetching step data...</p>
+            <Loader2 className="size-10 animate-spin text-slate-400" />
+            <p className="text-slate-400 font-medium">Fetching step data...</p>
           </div>
         ) : questions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-gray-100 rounded-3xl">
-            <p className="text-gray-400 italic">
+          <div className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-slate-200 rounded-[2.5rem]">
+            <p className="text-slate-400 italic">
               No questions available for this step.
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4 }}
-                className="space-y-6"
+                exit={{ opacity: 0, y: -30 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="space-y-10"
               >
                 {questions.map((question) => (
                   <Card
                     key={question.id}
-                    className="border-none shadow-lg shadow-blue-900/5 rounded-3xl overflow-hidden"
+                    className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-[2.5rem] overflow-hidden"
                   >
-                    <CardContent className="p-8 md:p-10 space-y-8">
-                      <div className="flex gap-4 items-start">
-                        <div className="flex-shrink-0 w-10 h-10 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-xs border border-blue-100 shadow-sm">
+                    <CardContent className="p-10 md:p-14 space-y-12">
+                      <div className="flex gap-6 items-start">
+                        <div className="flex-shrink-0 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg font-bold text-[10px] uppercase tracking-wider border border-slate-200/50 mt-2">
                           {question.controlReference}
                         </div>
-                        <Label className="text-xl font-semibold text-gray-900 leading-snug pt-1 flex-1">
+                        <Label className="text-3xl font-bold text-slate-900 leading-[1.2] flex-1">
                           {question.questionText}
                         </Label>
                       </div>
 
-                      <RadioGroup
-                        value={answers[question.id]?.value || ""}
-                        onValueChange={(value) => {
-                          const option = question.options.find(
-                            (opt) => opt.id === value,
-                          );
-                          if (option) {
-                            handleAnswerChange(
-                              question.id,
-                              value,
-                              parseFloat(option.scoreValue || "0"),
+                      <div className="relative">
+                        <RadioGroup
+                          value={answers[question.id]?.value || ""}
+                          onValueChange={(value) => {
+                            const option = question.options.find(
+                              (opt) => opt.id === value,
                             );
-                          }
-                        }}
-                        className="flex flex-row gap-3 bg-gray-50/50 p-2 rounded-3xl border border-gray-100"
-                      >
-                        {question.options.map((option) => (
-                          <div
-                            key={option.id}
-                            className={`flex-1 flex flex-col items-center justify-center p-5 rounded-2xl transition-all cursor-pointer text-center gap-2 border-2 ${
-                              answers[question.id]?.value === option.id
-                                ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                                : "bg-white text-gray-600 border-transparent hover:border-gray-200"
-                            }`}
-                            onClick={() => {
-                              const radioItem = document.getElementById(
-                                `${question.id}-${option.id}`,
+                            if (option) {
+                              handleAnswerChange(
+                                question.id,
+                                value,
+                                parseFloat(option.scoreValue || "0"),
                               );
-                              radioItem?.click();
-                            }}
-                          >
-                            <RadioGroupItem
-                              value={option.id}
-                              id={`${question.id}-${option.id}`}
-                              className="sr-only"
-                            />
-                            <span className="text-sm font-bold leading-tight">
-                              {option.optionText}
-                            </span>
-                            {answers[question.id]?.value === option.id ? (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="size-1.5 bg-white rounded-full shadow-sm"
+                            }
+                          }}
+                          className="flex flex-row gap-0.5 bg-slate-50 p-1.5 rounded-[2rem] border border-slate-200/50"
+                        >
+                          {question.options.map((option) => (
+                            <div
+                              key={option.id}
+                              className={`flex-1 relative group cursor-pointer`}
+                              onClick={() => {
+                                const radioItem = document.getElementById(
+                                  `${question.id}-${option.id}`,
+                                );
+                                radioItem?.click();
+                              }}
+                            >
+                              <RadioGroupItem
+                                value={option.id}
+                                id={`${question.id}-${option.id}`}
+                                className="sr-only"
                               />
-                            ) : (
-                              <div className="size-1.5 bg-gray-200 rounded-full" />
-                            )}
-                          </div>
-                        ))}
-                      </RadioGroup>
+                              <div
+                                className={`flex flex-col items-center justify-center py-6 px-4 rounded-[1.5rem] transition-all duration-300 relative z-10 ${
+                                  answers[question.id]?.value === option.id
+                                    ? "text-white"
+                                    : "text-slate-500 hover:text-slate-900"
+                                }`}
+                              >
+                                {answers[question.id]?.value === option.id && (
+                                  <motion.div
+                                    layoutId={`active-option-${question.id}`}
+                                    className="absolute inset-0 bg-slate-900 rounded-[1.5rem] shadow-xl shadow-slate-200"
+                                    transition={{
+                                      type: "spring",
+                                      bounce: 0.2,
+                                      duration: 0.6,
+                                    }}
+                                  />
+                                )}
+                                <span className="relative z-20 text-base font-bold tracking-tight">
+                                  {option.optionText}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -318,32 +326,33 @@ export function AssessmentPage() {
             </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-12 px-4 pb-10">
+            <div className="flex justify-between items-center mt-16 px-4 pb-16">
               <Button
                 variant="ghost"
                 onClick={handlePrevious}
                 disabled={currentStep === 1}
-                className="gap-3 text-gray-500 hover:text-gray-900 transition-colors py-6 px-8 rounded-2xl"
+                className="gap-3 text-slate-400 hover:text-slate-900 transition-all py-8 px-10 rounded-2xl hover:bg-slate-100 font-bold text-lg"
               >
-                <ArrowLeft className="size-5" />
-                <span className="font-bold">Previous Step</span>
+                <ArrowLeft className="size-6" />
+                <span>Previous Step</span>
               </Button>
 
               <Button
                 onClick={handleNext}
-                className="gap-3 py-6 px-12 rounded-2xl shadow-xl shadow-blue-600/20 bg-blue-600 hover:bg-blue-700 transition-all active:scale-95"
+                className="gap-4 py-8 px-14 rounded-3xl shadow-2xl shadow-slate-200 bg-slate-900 hover:bg-slate-800 transition-all active:scale-[0.98] text-lg font-bold"
               >
-                <span className="font-bold ml-1">
+                <span>
                   {currentStep === metadata?.totalSteps
                     ? "Complete Assessment"
                     : "Next Step"}
                 </span>
-                <ArrowRight className="size-5" />
+                <ArrowRight className="size-6" />
               </Button>
             </div>
           </div>
         )}
       </main>
+
 
 
 
