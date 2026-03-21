@@ -27,8 +27,10 @@ import { projectId, publicAnonKey } from "@/lib/supabaseInfo";
 import {
   getAssessmentFramework,
   getFrameworkMetadata,
+  saveAssessmentDraft,
 } from "@/redux/actions/assessmentAction/assessmentAction";
 import { RootState } from "@/redux";
+import { AssessmentAnswer } from "@/redux/actions/assessmentAction/assessmentActionInterface";
 
 interface Answer {
   questionId: string;
@@ -51,6 +53,38 @@ export function AssessmentPage() {
     companyName: "",
     location: "",
   });
+
+  // Auto-save logic
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      const answersArray: AssessmentAnswer[] = Object.values(answers).map((ans) => ({
+        questionVersionId: ans.questionId,
+        selectedOptionVersionIds: [ans.value],
+        isApplicable: true,
+        status: "DRAFT",
+      }));
+
+      console.log("answersArray", answersArray);
+      
+
+      if (answersArray.length > 0) {
+        (dispatch as any)(
+          saveAssessmentDraft({
+            assessmentId: framework?.id || "550e8400-e29b-41d4-a716-446655440000",
+            answers: answersArray,
+            onSuccess: () => {
+              console.log("Draft saved successfully");
+            },
+            onError: (err: any) => {
+              console.error("Failed to save draft:", err);
+            },
+          }),
+        );
+      }
+    }, 10000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [dispatch, answers, framework?.id]);
 
 
   useEffect(() => {
@@ -77,7 +111,6 @@ export function AssessmentPage() {
       );
     }
   }, [dispatch, currentStep]);
-
 
   const questions = framework?.questions || [];
 
@@ -250,12 +283,12 @@ export function AssessmentPage() {
                     key={question.id}
                     className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white rounded-[2.5rem] overflow-hidden"
                   >
-                    <CardContent className="p-10 md:p-14 space-y-12">
+                    <CardContent className="p-10 md:p-5 space-y-6">
                       <div className="flex gap-6 items-start">
-                        <div className="flex-shrink-0 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg font-bold text-[10px] uppercase tracking-wider border border-slate-200/50 mt-2">
+                        <div className="flex-shrink-0 px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg font-bold text-[10px] uppercase tracking-wider border border-slate-200/50">
                           {question.controlReference}
                         </div>
-                        <Label className="text-3xl font-bold text-slate-900 leading-[1.2] flex-1">
+                        <Label className="text-md font-bold text-slate-900 leading-[1.2] flex-1">
                           {question.questionText}
                         </Label>
                       </div>
@@ -311,7 +344,7 @@ export function AssessmentPage() {
                                     }}
                                   />
                                 )}
-                                <span className="relative z-20 text-base font-bold tracking-tight">
+                                <span className="relative z-20 text-sm font-bold tracking-tight">
                                   {option.optionText}
                                 </span>
                               </div>

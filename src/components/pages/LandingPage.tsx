@@ -40,6 +40,10 @@ import {
   userVerifyOtp,
   userSignin,
 } from "@/redux/actions/authAction/authAction";
+import { useAppSelector } from "@/redux/hooks";
+import { startAssessment } from "@/redux/actions/assessmentAction/assessmentAction";
+import { openSignInModal, closeSignInModal } from "@/redux/actions/uiAction/uiAction";
+
 
 const steps = [
   {
@@ -69,7 +73,7 @@ const steps = [
 export function LandingPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const [showSignIn, setShowSignIn] = useState(false);
+  const { isSignInModalOpen, redirectPath } = useAppSelector((state) => state.ui);
   const [showSignUp, setShowSignUp] = useState(false);
   const [showOtpVerify, setShowOtpVerify] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
@@ -101,9 +105,9 @@ export function LandingPage() {
         password: formData.password,
         onSuccess: () => {
           toast.success("Signed in successfully!");
-          setShowSignIn(false);
+          dispatch(closeSignInModal());
           setIsLoading(false);
-          router.push("/dashboard");
+          router.push(redirectPath || "/dashboard");
         },
         onError: (error: string) => {
           toast.error(error || "Failed to sign in");
@@ -112,6 +116,7 @@ export function LandingPage() {
       }),
     );
   };
+
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,7 +161,7 @@ export function LandingPage() {
         onSuccess: () => {
           toast.success("Account verified successfully! Please sign in.");
           setShowOtpVerify(false);
-          setShowSignIn(true);
+          dispatch(openSignInModal());
           setFormData({
             email: "",
             password: "",
@@ -167,6 +172,7 @@ export function LandingPage() {
           setOtpValue("");
           setIsLoading(false);
         },
+
         onError: (error: string) => {
           toast.error(error || "Failed to verify OTP");
           setIsLoading(false);
@@ -176,7 +182,16 @@ export function LandingPage() {
   };
 
   const handleStartAssessment = () => {
-    router.push("/assessment");
+    dispatch(
+      startAssessment({
+        onSuccess: () => {
+          router.push("/assessment");
+        },
+        onError: (error: string) => {
+          toast.error(error);
+        },
+      }),
+    );
   };
 
   return (
@@ -191,7 +206,7 @@ export function LandingPage() {
             </h1>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowSignIn(true)}>
+            <Button variant="outline" onClick={() => dispatch(openSignInModal())}>
               Sign In
             </Button>
             <Button onClick={() => setShowSignUp(true)}>Sign Up</Button>
@@ -368,7 +383,7 @@ export function LandingPage() {
       </main>
 
       {/* Sign In Dialog */}
-      <Dialog open={showSignIn} onOpenChange={setShowSignIn}>
+      <Dialog open={isSignInModalOpen} onOpenChange={() => dispatch(closeSignInModal())}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Sign In</DialogTitle>
@@ -418,7 +433,7 @@ export function LandingPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowSignIn(false);
+                  dispatch(closeSignInModal());
                   setShowSignUp(true);
                 }}
                 className="text-blue-600 hover:underline"
@@ -528,7 +543,7 @@ export function LandingPage() {
                 type="button"
                 onClick={() => {
                   setShowSignUp(false);
-                  setShowSignIn(true);
+                  dispatch(openSignInModal());
                 }}
                 className="text-blue-600 hover:underline"
                 disabled={isLoading}
@@ -536,6 +551,7 @@ export function LandingPage() {
                 Sign in
               </button>
             </p>
+
           </form>
         </DialogContent>
       </Dialog>

@@ -7,6 +7,8 @@ import {
 import {
   GET_ASSESSMENT_FRAMEWORK,
   GET_FRAMEWORK_METADATA,
+  START_ASSESSMENT,
+  SAVE_ASSESSMENT_DRAFT,
 } from "../actions/assessmentAction/assessmentAction";
 import {
   handleUserSignup,
@@ -16,6 +18,8 @@ import {
 import {
   handleGetAssessmentFramework,
   handleGetFrameworkMetadata,
+  handleStartAssessment,
+  handleSaveAssessmentDraft,
 } from "./handlers/assessmentHandler/assessmentHandler";
 
 export function* watcherSaga(): Generator<unknown, void, unknown> {
@@ -28,6 +32,9 @@ export function* watcherSaga(): Generator<unknown, void, unknown> {
     // assessment
     yield takeLatest(GET_ASSESSMENT_FRAMEWORK, handleGetAssessmentFramework),
     yield takeLatest(GET_FRAMEWORK_METADATA, handleGetFrameworkMetadata),
+    yield takeLatest(START_ASSESSMENT, handleStartAssessment),
+    yield takeLatest(SAVE_ASSESSMENT_DRAFT, handleSaveAssessmentDraft),
   ]);
 }
+
 

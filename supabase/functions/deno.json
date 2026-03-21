@@ -1,8 +1,0 @@
-{
-  "tasks": {
-    "test": "deno test --allow-all",
-    "check": "deno check --no-lock **/*.tsx **/*.ts"
-  },
-  "imports": {
-  }
-}
